@@ -1,12 +1,11 @@
 import { Card, Classes, Pre } from '@blueprintjs/core';
 import * as classNames from 'classnames';
 import { parseError } from 'js-slang';
-import { Variant } from 'js-slang/dist/types';
 import { stringify } from 'js-slang/dist/utils/stringify';
 import * as React from 'react';
 import { HotKeys } from 'react-hotkeys';
 
-import { InterpreterOutput } from '../../reducers/states';
+import { FrontendVariant, InterpreterOutput } from '../../reducers/states';
 import CanvasOutput from './CanvasOutput';
 import ReplInput, { IReplInputProps } from './ReplInput';
 
@@ -20,7 +19,7 @@ export interface IReplProps {
   hidden?: boolean;
   usingSubst?: boolean;
   sourceChapter?: number;
-  sourceVariant?: Variant;
+  sourceVariant?: FrontendVariant;
 }
 
 export interface IOutputProps {

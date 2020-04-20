@@ -5,9 +5,7 @@ import { put, select, takeEvery } from 'redux-saga/effects';
 import * as actions from '../actions';
 import * as actionTypes from '../actions/actionTypes';
 import { ExternalLibraryName } from '../components/assessment/assessmentShape';
-import { defaultEditorValue, IState } from '../reducers/states';
-
-import { Variant } from 'js-slang/dist/types';
+import { defaultEditorValue, FrontendVariant, IState } from '../reducers/states';
 
 export default function* playgroundSaga(): SagaIterator {
   yield takeEvery(actionTypes.GENERATE_LZ_STRING, updateQueryString);
@@ -25,7 +23,7 @@ function* updateQueryString() {
   const chapter: number = yield select(
     (state: IState) => state.workspaces.playground.context.chapter
   );
-  const variant: Variant = yield select(
+  const variant: FrontendVariant = yield select(
     (state: IState) => state.workspaces.playground.context.variant
   );
   const external: ExternalLibraryName = yield select(

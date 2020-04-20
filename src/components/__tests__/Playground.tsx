@@ -1,8 +1,7 @@
 import { shallow } from 'enzyme';
 import * as React from 'react';
 
-import { Variant } from 'js-slang/dist/types';
-import { SideContentType } from 'src/reducers/states';
+import { FrontendVariant, SideContentType } from 'src/reducers/states';
 import { mockRouterProps } from '../../mocks/components';
 import { ExternalLibraryName, ExternalLibraryNames } from '../assessment/assessmentShape';
 import Playground, { IPlaygroundProps } from '../Playground';
@@ -23,7 +22,7 @@ const baseProps = {
   sharedbAceIsInviting: false,
   sideContentHeight: 40,
   sourceChapter: 2,
-  sourceVariant: 'default' as Variant,
+  sourceVariant: 'default' as FrontendVariant,
   externalLibraryName: ExternalLibraryNames.NONE,
   output: [],
   replValue: '',

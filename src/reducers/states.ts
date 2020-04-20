@@ -96,6 +96,7 @@ export interface IWorkspaceState {
   readonly autogradingResults: AutogradingResult[];
   readonly breakpoints: string[];
   readonly context: Context;
+  readonly frontendVariant: FrontendVariant;
   readonly editorPrepend: string;
   readonly editorReadonly: boolean;
   readonly editorSessionId: string;
@@ -215,13 +216,15 @@ export enum Role {
   Admin = 'admin'
 }
 
+export type FrontendVariant = Variant | 'arduino';
+
 /**
  * Defines what chapters are available for usage.
  * For external libraries, see externalLibraries.ts
  */
 export interface ISourceLanguage {
   chapter: number;
-  variant: Variant;
+  variant: FrontendVariant;
 }
 
 export const sourceLanguages: ISourceLanguage[] = [
@@ -232,16 +235,18 @@ export const sourceLanguages: ISourceLanguage[] = [
   { chapter: 3, variant: 'default' },
   { chapter: 3, variant: 'concurrent' },
   { chapter: 3, variant: 'non-det' },
+  { chapter: 3, variant: 'arduino' },
   { chapter: 4, variant: 'default' }
 ];
 
-const variantDisplay: Map<Variant, string> = new Map([
+const variantDisplay: Map<FrontendVariant, string> = new Map([
   ['non-det', 'Non-Det'],
   ['concurrent', 'Concurrent'],
-  ['lazy', 'Lazy']
+  ['lazy', 'Lazy'],
+  ['arduino', 'Arduino']
 ]);
 
-export const styliseChapter = (chap: number, variant: Variant = 'default') => {
+export const styliseChapter = (chap: number, variant: FrontendVariant = 'default') => {
   let res = `Source \xa7${chap}`;
   if (variantDisplay.has(variant)) {
     res += ' ' + variantDisplay.get(variant);
@@ -290,6 +295,7 @@ export const createDefaultWorkspace = (workspaceLocation: WorkspaceLocation): IW
     workspaceLocation,
     DEFAULT_SOURCE_VARIANT
   ),
+  frontendVariant: DEFAULT_SOURCE_VARIANT,
   editorPrepend: '',
   editorSessionId: '',
   editorValue:

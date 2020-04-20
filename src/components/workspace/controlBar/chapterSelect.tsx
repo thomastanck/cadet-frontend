@@ -3,19 +3,23 @@ import { IconNames } from '@blueprintjs/icons';
 import { ItemRenderer, Select } from '@blueprintjs/select';
 import * as React from 'react';
 
-import { Variant } from 'js-slang/dist/types';
-import { ISourceLanguage, sourceLanguages, styliseChapter } from '../../../reducers/states';
+import {
+  FrontendVariant,
+  ISourceLanguage,
+  sourceLanguages,
+  styliseChapter
+} from '../../../reducers/states';
 
 export type ChapterSelectProps = {
   handleChapterSelect?: (i: IChapter, e: React.ChangeEvent<HTMLSelectElement>) => void;
   sourceChapter: number;
-  sourceVariant: Variant;
+  sourceVariant: FrontendVariant;
   key: string;
 };
 
 export interface IChapter {
   chapter: number;
-  variant: Variant;
+  variant: FrontendVariant;
   displayName: string;
 }
 
@@ -40,7 +44,7 @@ export function ChapterSelect(props: ChapterSelectProps) {
 
   const chapSelect = (
     currentChap: number,
-    currentVariant: Variant,
+    currentVariant: FrontendVariant,
     handleSelect = (i: IChapter, e: React.ChangeEvent<HTMLSelectElement>) => {}
   ) => (
     <ChapterSelectComponent

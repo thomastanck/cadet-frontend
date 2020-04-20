@@ -1,9 +1,8 @@
 import { action } from 'typesafe-actions';
 
-import { Variant } from 'js-slang/dist/types';
 import { ExternalLibraryName, Library } from '../components/assessment/assessmentShape';
 import { IPosition } from '../components/workspace/Editor';
-import { IWorkspaceState, SideContentType } from '../reducers/states';
+import { FrontendVariant, IWorkspaceState, SideContentType } from '../reducers/states';
 import * as actionTypes from './actionTypes';
 
 /**
@@ -49,7 +48,7 @@ export const changeSideContentHeight = (height: number, workspaceLocation: Works
 
 export const chapterSelect = (
   chapter: number,
-  variant: Variant,
+  variant: FrontendVariant,
   workspaceLocation: WorkspaceLocation
 ) =>
   action(actionTypes.CHAPTER_SELECT, {

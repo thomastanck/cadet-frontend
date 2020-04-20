@@ -5,8 +5,7 @@ import * as React from 'react';
 import { HotKeys } from 'react-hotkeys';
 import { RouteComponentProps } from 'react-router';
 
-import { Variant } from 'js-slang/dist/types';
-import { InterpreterOutput, SideContentType } from '../reducers/states';
+import { FrontendVariant, InterpreterOutput, SideContentType } from '../reducers/states';
 import { LINKS } from '../utils/constants';
 import { ExternalLibraryName, ExternalLibraryNames } from './assessment/assessmentShape';
 import Markdown from './commons/Markdown';
@@ -79,7 +78,7 @@ export interface IStateProps {
   sharedbAceInitValue: string;
   sharedbAceIsInviting: boolean;
   sourceChapter: number;
-  sourceVariant: Variant;
+  sourceVariant: FrontendVariant;
   websocketStatus: number;
   externalLibraryName: string;
   usingSubst: boolean;
@@ -90,7 +89,7 @@ export interface IDispatchProps {
   handleBrowseHistoryDown: () => void;
   handleBrowseHistoryUp: () => void;
   handleChangeExecTime: (execTime: number) => void;
-  handleChapterSelect: (chapter: number, variant: Variant) => void;
+  handleChapterSelect: (chapter: number, variant: FrontendVariant) => void;
   handleDeclarationNavigate: (cursorPosition: IPosition) => void;
   handleEditorEval: () => void;
   handleEditorHeightChange: (height: number) => void;
@@ -162,7 +161,7 @@ class Playground extends React.Component<IPlaygroundProps, PlaygroundState> {
     );
 
     const chapterSelectHandler = (
-      { chapter, variant }: { chapter: number; variant: Variant },
+      { chapter, variant }: { chapter: number; variant: FrontendVariant },
       e: any
     ) => {
       if (

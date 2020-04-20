@@ -3,8 +3,7 @@ import { IconNames } from '@blueprintjs/icons';
 import * as classNames from 'classnames';
 import * as React from 'react';
 
-import { Variant } from 'js-slang/dist/types';
-import { InterpreterOutput, SideContentType } from '../../reducers/states';
+import { FrontendVariant, InterpreterOutput, SideContentType } from '../../reducers/states';
 import { ExternalLibraryName } from '../assessment/assessmentShape';
 import Workspace, { WorkspaceProps } from '../workspace';
 import {
@@ -53,7 +52,7 @@ export interface IStateProps {
   sideContentHeight?: number;
   sourcecastIndex: ISourcecastData[] | null;
   sourceChapter: number;
-  sourceVariant: Variant;
+  sourceVariant: FrontendVariant;
   timeResumed: number;
 }
 

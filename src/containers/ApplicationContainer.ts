@@ -12,9 +12,7 @@ import {
 import Application, { IDispatchProps, IStateProps } from '../components/Application';
 import { ExternalLibraryName } from '../components/assessment/assessmentShape';
 import { externalLibraries } from '../reducers/externalLibraries';
-import { IState } from '../reducers/states';
-
-import { Variant } from 'js-slang/dist/types';
+import { FrontendVariant, IState } from '../reducers/states';
 
 /**
  * Provides the title of the application for display.
@@ -40,7 +38,7 @@ const mapDispatchToProps: MapDispatchToProps<IDispatchProps, {}> = (dispatch: Di
     {
       handleClearContext: (
         chapter: number,
-        variant: Variant,
+        variant: FrontendVariant,
         externalLibraryName: ExternalLibraryName
       ) =>
         beginClearContext(

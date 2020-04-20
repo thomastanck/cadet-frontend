@@ -1,5 +1,5 @@
 import { Context, IOptions, Result, resume, runInContext } from 'js-slang';
-import { ErrorSeverity, ErrorType, Finished, SourceError, Variant } from 'js-slang/dist/types';
+import { ErrorSeverity, ErrorType, Finished, SourceError } from 'js-slang/dist/types';
 import { expectSaga } from 'redux-saga-test-plan';
 import { call } from 'redux-saga/effects';
 
@@ -18,7 +18,7 @@ import {
 import { mockRuntimeContext } from '../../mocks/context';
 import { mockTestcases } from '../../mocks/gradingAPI';
 import { externalLibraries } from '../../reducers/externalLibraries';
-import { defaultState, IState, SideContentType } from '../../reducers/states';
+import { defaultState, FrontendVariant, IState, SideContentType } from '../../reducers/states';
 import { showSuccessMessage, showWarningMessage } from '../../utils/notification';
 import workspaceSaga, { evalCode, evalTestCode } from '../workspaces';
 
@@ -51,7 +51,7 @@ describe('EVAL_EDITOR', () => {
     const editorPostpend = '42;';
     const execTime = 1000;
     const context = createContext();
-    const variant: Variant = 'default';
+    const variant: FrontendVariant = 'default';
     const globals: Array<[string, any]> = [
       ['testNumber', 3.141592653589793],
       ['testObject', { a: 1, b: 2 }],
@@ -407,7 +407,7 @@ describe('CHAPTER_SELECT', () => {
 
   test('does not call beginClearContext, clearReplOutput and showSuccessMessage when oldChapter === newChapter and oldVariant === newVariant', () => {
     const newChapter = 4;
-    const newVariant: Variant = 'default';
+    const newVariant: FrontendVariant = 'default';
     const library: Library = {
       chapter: newChapter,
       variant: newVariant,

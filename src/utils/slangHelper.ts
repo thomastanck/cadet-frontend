@@ -4,6 +4,7 @@ import { Context, CustomBuiltIns, Value, Variant } from 'js-slang/dist/types';
 import { stringify } from 'js-slang/dist/utils/stringify';
 import { difference, keys } from 'lodash';
 import { handleConsoleLog } from '../actions';
+import { FrontendVariant } from '../reducers/states';
 
 /**
  * This file contains wrappers for certain functions
@@ -127,9 +128,19 @@ export function createContext<T>(
   chapter: number,
   externals: string[],
   externalContext: T,
-  variant: Variant = 'default'
+  variant: FrontendVariant = 'default'
 ) {
-  return createSlangContext<T>(chapter, variant, externals, externalContext, externalBuiltIns);
+  return createSlangContext<T>(
+    chapter,
+    frontendToSlangVariant(variant),
+    externals,
+    externalContext,
+    externalBuiltIns
+  );
+}
+
+export function frontendToSlangVariant(variant: FrontendVariant): Variant {
+  return variant === 'arduino' ? 'default' : variant;
 }
 
 // Assumes that the grader doesn't need additional external libraries apart from the standard

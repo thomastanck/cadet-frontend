@@ -9,21 +9,19 @@ import Material from '../containers/material/MaterialContainer';
 import MissionControlContainer from '../containers/missionControl';
 import Playground from '../containers/PlaygroundContainer';
 import Sourcecast from '../containers/sourcecast/SourcecastContainer';
-import { Role, sourceLanguages } from '../reducers/states';
+import { FrontendVariant, Role, sourceLanguages } from '../reducers/states';
 import { stringParamToInt } from '../utils/paramParseHelpers';
 import { ExternalLibraryName, ExternalLibraryNames } from './assessment/assessmentShape';
 import Contributors from './contributors';
 import NavigationBar from './NavigationBar';
 import NotFound from './NotFound';
 
-import { Variant } from 'js-slang/dist/types';
-
 export interface IApplicationProps extends IDispatchProps, IStateProps, RouteComponentProps<{}> {}
 
 export interface IStateProps {
   accessToken?: string;
   currentPlaygroundChapter: number;
-  currentPlaygroundVariant: Variant;
+  currentPlaygroundVariant: FrontendVariant;
   role?: Role;
   title: string;
   name?: string;
@@ -33,7 +31,7 @@ export interface IStateProps {
 export interface IDispatchProps {
   handleClearContext: (
     chapter: number,
-    variant: Variant,
+    variant: FrontendVariant,
     externalLibraryName: ExternalLibraryName
   ) => void;
   handleEditorValueChange: (val: string) => void;
@@ -139,7 +137,7 @@ const parseVariant = (props: RouteComponentProps<{}>, chap: number) => {
     language => language.chapter === chap && language.variant === variantQuery
   );
 
-  const variant: Variant = matchingLang ? matchingLang.variant : 'default';
+  const variant: FrontendVariant = matchingLang ? matchingLang.variant : 'default';
 
   return variant;
 };

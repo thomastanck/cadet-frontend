@@ -1,4 +1,6 @@
 import {
+  assemble,
+  compile,
   Context,
   findDeclaration,
   getNames,
@@ -10,7 +12,6 @@ import {
 import { TRY_AGAIN } from 'js-slang/dist/constants';
 import { InterruptedError } from 'js-slang/dist/errors/errors';
 import { manualToggleDebugger } from 'js-slang/dist/stdlib/inspector';
-import { Variant } from 'js-slang/dist/types';
 import { random } from 'lodash';
 import { SagaIterator } from 'redux-saga';
 import { call, delay, put, race, select, take, takeEvery } from 'redux-saga/effects';
@@ -26,6 +27,7 @@ import {
 import { Documentation } from '../reducers/documentation';
 import { externalLibraries } from '../reducers/externalLibraries';
 import {
+  FrontendVariant,
   IPlaygroundState,
   IState,
   IWorkspaceState,
@@ -79,8 +81,8 @@ export default function* workspaceSaga(): SagaIterator {
     const globals: Array<[string, any]> = yield select(
       (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).globals
     );
-    const variant: Variant = yield select(
-      (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).context.variant
+    const variant: FrontendVariant = yield select(
+      (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).frontendVariant
     );
     const library = {
       chapter,
@@ -114,7 +116,7 @@ export default function* workspaceSaga(): SagaIterator {
       yield* blockExtraMethods(elevatedContext, context, execTime, workspaceLocation);
     }
 
-    yield* evalCode(value, context, execTime, workspaceLocation, actionTypes.EVAL_EDITOR);
+    yield* evalCode(value, context, execTime, workspaceLocation, actionTypes.EVAL_EDITOR, variant);
   });
 
   yield takeEvery(actionTypes.PROMPT_AUTOCOMPLETE, function*(
@@ -213,7 +215,10 @@ export default function* workspaceSaga(): SagaIterator {
     context = yield select(
       (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).context
     );
-    yield* evalCode(code, context, execTime, workspaceLocation, actionTypes.EVAL_REPL);
+    const variant: FrontendVariant = yield select(
+      (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).frontendVariant
+    );
+    yield* evalCode(code, context, execTime, workspaceLocation, actionTypes.EVAL_REPL, variant);
   });
 
   yield takeEvery(actionTypes.DEBUG_RESUME, function*(
@@ -344,7 +349,7 @@ export default function* workspaceSaga(): SagaIterator {
     const workspaceLocation = action.payload.workspaceLocation;
     const newChapter = action.payload.chapter;
     const oldVariant = yield select(
-      (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).context.variant
+      (state: IState) => (state.workspaces[workspaceLocation] as IWorkspaceState).frontendVariant
     );
     const newVariant = action.payload.variant;
     const oldChapter = yield select(
@@ -584,7 +589,8 @@ export function* evalCode(
   context: Context,
   execTime: number,
   workspaceLocation: WorkspaceLocation,
-  actionType: string
+  actionType: string,
+  variant?: FrontendVariant
 ) {
   context.runtime.debuggerOn =
     (actionType === actionTypes.EVAL_EDITOR || actionType === actionTypes.DEBUG_RESUME) &&
@@ -613,7 +619,7 @@ export function* evalCode(
     }
   }
 
-  function call_variant(variant: Variant) {
+  function call_variant() {
     if (variant === 'non-det') {
       return code.trim() === TRY_AGAIN
         ? call(resume, lastNonDetResult)
@@ -633,15 +639,49 @@ export function* evalCode(
     }
   }
 
+  function* do_arduino() {
+    switch (actionType) {
+      case actionTypes.EVAL_EDITOR:
+        const compiled = compile(code, context);
+        if (!compiled) {
+          return { status: 'error' };
+        }
+        const binary = assemble(compiled);
+        // TODO: send to Arduino here
+        yield put(
+          actions.handleConsoleLog(
+            'Compiled binary:\n' +
+              Array.prototype.map
+                .call(binary, (x: number) => x.toString(16).padStart(2, '0'))
+                .join(' '),
+            workspaceLocation
+          )
+        );
+        // The value below should be the result from the arduino
+        return { status: 'finished', value: 123 };
+      case actionTypes.EVAL_REPL:
+        // TODO: possibly in future this can be used to send console input to the arduino
+        yield put(
+          actions.handleConsoleLog('Arduino console input unimplemented', workspaceLocation)
+        );
+        return { status: 'error' };
+    }
+
+    return { status: 'finished' };
+  }
+
   const isNonDet: boolean = context.variant === 'non-det';
   const isLazy: boolean = context.variant === 'lazy';
+  const isArduino: boolean = variant === 'arduino';
 
   const { result, interrupted, paused } = yield race({
     result:
       actionType === actionTypes.DEBUG_RESUME
         ? call(resume, lastDebuggerResult)
         : isNonDet || isLazy
-        ? call_variant(context.variant)
+        ? call_variant()
+        : isArduino
+        ? do_arduino()
         : call(runInContext, code, context, {
             scheduler: 'preemptive',
             originalMaxExecTime: execTime,

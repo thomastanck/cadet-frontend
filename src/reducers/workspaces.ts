@@ -271,6 +271,7 @@ export const reducer: Reducer<IWorkspaceManagerState> = (
             workspaceLocation,
             action.payload.library.variant
           ),
+          frontendVariant: action.payload.library.variant || 'default',
           globals: action.payload.library.globals
         }
       };

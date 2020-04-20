@@ -9,8 +9,9 @@ import 'ace-builds/src-noconflict/ext-searchbox';
 import { createContext, getAllOccurrencesInScope, getScope, getTypeInformation } from 'js-slang';
 import { HighlightRulesSelector, ModeSelector } from 'js-slang/dist/editors/ace/modes/source';
 import 'js-slang/dist/editors/ace/theme/source';
-import { Variant } from 'js-slang/dist/types';
+import { FrontendVariant } from '../../reducers/states';
 import { LINKS } from '../../utils/constants';
+import { frontendToSlangVariant } from '../../utils/slangHelper';
 import AceRange from './AceRange';
 import { checkSessionIdExists } from './collabEditing/helper';
 
@@ -33,7 +34,7 @@ export interface IEditorProps {
   sharedbAceIsInviting?: boolean;
   sourceChapter?: number;
   externalLibraryName?: string;
-  sourceVariant?: Variant;
+  sourceVariant?: FrontendVariant;
   handleDeclarationNavigate: (cursorPosition: IPosition) => void;
   handleEditorEval: () => void;
   handleEditorValueChange: (newCode: string) => void;
@@ -191,13 +192,10 @@ class Editor extends React.PureComponent<IEditorProps, {}> {
   // chapter selector used to choose the correct source mode
   public chapterNo = () => {
     let chapter = this.props.sourceChapter;
-    let variant = this.props.sourceVariant;
+    const variant = frontendToSlangVariant(this.props.sourceVariant || 'default');
     let external = this.props.externalLibraryName;
     if (chapter === undefined) {
       chapter = 1;
-    }
-    if (variant === undefined) {
-      variant = 'default';
     }
     if (external === undefined) {
       external = 'NONE';

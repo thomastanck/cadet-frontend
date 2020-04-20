@@ -3,15 +3,13 @@ import { IconNames } from '@blueprintjs/icons';
 import { ItemRenderer, Select } from '@blueprintjs/select';
 import * as React from 'react';
 import { externalLibraries } from '../../../reducers/externalLibraries';
-import { sourceLanguages, styliseChapter } from '../../../reducers/states';
+import { FrontendVariant, sourceLanguages, styliseChapter } from '../../../reducers/states';
 
 import { ExternalLibraryName, IAssessment, Library } from '../../assessment/assessmentShape';
 import { controlButton } from '../../commons';
 import { emptyLibrary } from '../assessmentTemplates';
 import { assignToPath, getValueFromPath } from './';
 import TextareaContent from './TextareaContent';
-
-import { Variant } from 'js-slang/dist/types';
 
 interface IProps {
   assessment: IAssessment;
@@ -250,7 +248,7 @@ const chapters = sourceLanguages.map(lang => ({
 
 const chapterSelect = (
   currentChap: number,
-  variant: Variant = 'default',
+  variant: FrontendVariant = 'default',
   handleSelect = (i: IChapter, e: React.ChangeEvent<HTMLSelectElement>) => {}
 ) => (
   <ChapterSelectComponent

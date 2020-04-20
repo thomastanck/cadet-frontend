@@ -1,4 +1,6 @@
-import { SourceError, Variant } from 'js-slang/dist/types';
+import { SourceError } from 'js-slang/dist/types';
+
+import { FrontendVariant } from '../../reducers/states';
 
 /*
  * Used to display information regarding an assessment in the UI.
@@ -166,7 +168,7 @@ type ExternalLibrary = {
 
 export type Library = {
   chapter: number;
-  variant?: Variant;
+  variant?: FrontendVariant;
   external: ExternalLibrary;
   globals: Array<{
     0: string;
