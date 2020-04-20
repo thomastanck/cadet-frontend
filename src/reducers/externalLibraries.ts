@@ -156,6 +156,31 @@ const machineLearningLibrary = [
   'normalise_data'
 ];
 
+export const arduinoLibrary = [
+  'digital_read',
+  'digital_write',
+  'pin_mode',
+  'analog_read',
+  'analog_reference',
+  'analog_write',
+  'delay',
+  'delay_us',
+  'micros',
+  'millis',
+  'attach_interrupt',
+  'detach_interrupt',
+  'enable_interrupts',
+  'disable_interrupts',
+  'serial_begin',
+  'serial_end',
+  'serial_settimeout',
+  'serial_print',
+  'serial_println',
+  'serial_read',
+  'serial_write',
+  'serial_flush'
+];
+
 /**
  * Defines which external libraries are available for usage, and what
  * external symbols (exposed functions) are under them.

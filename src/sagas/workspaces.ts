@@ -25,7 +25,7 @@ import {
   TestcaseTypes
 } from '../components/assessment/assessmentShape';
 import { Documentation } from '../reducers/documentation';
-import { externalLibraries } from '../reducers/externalLibraries';
+import { arduinoLibrary, externalLibraries } from '../reducers/externalLibraries';
 import {
   FrontendVariant,
   IPlaygroundState,
@@ -642,7 +642,7 @@ export function* evalCode(
   function* do_arduino() {
     switch (actionType) {
       case actionTypes.EVAL_EDITOR:
-        const compiled = compile(code, context);
+        const compiled = compile(code, context, arduinoLibrary);
         if (!compiled) {
           return { status: 'error' };
         }
