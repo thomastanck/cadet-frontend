@@ -16,6 +16,7 @@ import {
   UPDATE_HISTORY_HELPERS,
   UPDATE_NOTIFICATIONS
 } from '../types/SessionTypes';
+import { REMOTE_EXEC_UPDATE_DEVICES } from '../../../features/remoteExecution/RemoteExecutionTypes';
 
 export const SessionsReducer: Reducer<SessionState> = (
   state = defaultSession,
@@ -87,6 +88,11 @@ export const SessionsReducer: Reducer<SessionState> = (
       return {
         ...state,
         gameState: action.payload
+      };
+    case REMOTE_EXEC_UPDATE_DEVICES:
+      return {
+        ...state,
+        devices: action.payload
       };
     default:
       return state;

@@ -7,6 +7,7 @@ import BackendSaga from './BackendSaga';
 import LoginSaga from './LoginSaga';
 import PersistenceSaga from './PersistenceSaga';
 import PlaygroundSaga from './PlaygroundSaga';
+import RemoteExecutionSaga from './RemoteExecutionSaga';
 import WorkspaceSaga from './WorkspaceSaga';
 
 export default function* MainSaga(): SagaIterator {
@@ -15,4 +16,5 @@ export default function* MainSaga(): SagaIterator {
   yield fork(LoginSaga);
   yield fork(PlaygroundSaga);
   yield fork(PersistenceSaga);
+  yield fork(RemoteExecutionSaga);
 }

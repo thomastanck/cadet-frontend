@@ -13,6 +13,7 @@ import * as PlaygroundActions from '../../features/playground/PlaygroundActions'
 import * as SourcecastActions from '../../features/sourceRecorder/sourcecast/SourcecastActions';
 import * as SourceRecorderActions from '../../features/sourceRecorder/SourceRecorderActions';
 import * as SourcereelActions from '../../features/sourceRecorder/sourcereel/SourcereelActions';
+import * as RemoteExecutionActions from '../../features/remoteExecution/RemoteExecutionActions';
 
 export const actions = {
   ...CommonsActions,
@@ -27,7 +28,8 @@ export const actions = {
   ...WorkspaceActions,
   ...GroundControlActions,
   ...AcademyActions,
-  ...PersistenceActions
+  ...PersistenceActions,
+  ...RemoteExecutionActions
 };
 
 export type SourceActionType = ActionType<typeof actions>;
