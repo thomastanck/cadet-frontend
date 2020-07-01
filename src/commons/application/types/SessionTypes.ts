@@ -1,5 +1,5 @@
 import { Grading, GradingOverview } from '../../../features/grading/GradingTypes';
-import { Device } from '../../../features/remoteExecution/RemoteExecutionTypes';
+import { Device, DeviceSession } from '../../../features/remoteExecution/RemoteExecutionTypes';
 import { Assessment, AssessmentOverview } from '../../assessment/AssessmentTypes';
 import { Notification } from '../../notificationBadge/NotificationBadgeTypes';
 import { HistoryHelper } from '../../utils/HistoryHelper';
@@ -48,5 +48,6 @@ export type SessionState = {
   readonly xp: number;
   readonly notifications: Notification[];
   readonly googleUser?: string;
-  readonly devices?: Device[];
+  readonly remoteExecutionDevices?: Device[];
+  readonly remoteExecutionSession?: DeviceSession;
 };

@@ -16,7 +16,10 @@ import {
   UPDATE_HISTORY_HELPERS,
   UPDATE_NOTIFICATIONS
 } from '../types/SessionTypes';
-import { REMOTE_EXEC_UPDATE_DEVICES } from '../../../features/remoteExecution/RemoteExecutionTypes';
+import {
+  REMOTE_EXEC_UPDATE_DEVICES,
+  REMOTE_EXEC_UPDATE_SESSION
+} from '../../../features/remoteExecution/RemoteExecutionTypes';
 
 export const SessionsReducer: Reducer<SessionState> = (
   state = defaultSession,
@@ -92,7 +95,12 @@ export const SessionsReducer: Reducer<SessionState> = (
     case REMOTE_EXEC_UPDATE_DEVICES:
       return {
         ...state,
-        devices: action.payload
+        remoteExecutionDevices: action.payload
+      };
+    case REMOTE_EXEC_UPDATE_SESSION:
+      return {
+        ...state,
+        remoteExecutionSession: action.payload
       };
     default:
       return state;
