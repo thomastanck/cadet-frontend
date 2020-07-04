@@ -1,4 +1,6 @@
-import { WorkspaceLocation } from 'src/commons/workspace/WorkspaceTypes';
+import { MqttClient } from 'mqtt';
+
+import { WorkspaceLocation } from '../../commons/workspace/WorkspaceTypes';
 
 export const REMOTE_EXEC_FETCH_DEVICES = 'REMOTE_EXEC_FETCH_DEVICES';
 export const REMOTE_EXEC_UPDATE_DEVICES = 'REMOTE_EXEC_UPDATE_DEVICES';
@@ -16,13 +18,13 @@ export interface Device {
   type: string;
 }
 
-export type DeviceConnectionStatus =
-  | { status: 'CONNECTING' }
-  | { status: 'CONNECTED' }
-  | { status: 'FAILED'; error?: string };
+export type DeviceConnection =
+  | { status: 'CONNECTING'; client: MqttClient }
+  | { status: 'CONNECTED'; client: MqttClient }
+  | { status: 'FAILED'; error?: string; client?: MqttClient };
 
 export interface DeviceSession {
   workspace: WorkspaceLocation;
   device: Device;
-  status: DeviceConnectionStatus;
+  connection: DeviceConnection;
 }

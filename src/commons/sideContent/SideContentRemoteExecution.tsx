@@ -49,7 +49,7 @@ const SideContentRemoteExecution: React.FC<SideContentRemoteExecutionProps> = pr
   ]);
   const dispatch = useDispatch();
 
-  const isConnecting = currentSession && currentSession.status.status === 'CONNECTING';
+  const isConnecting = currentSession && currentSession.connection.status === 'CONNECTING';
 
   React.useEffect(() => {
     // this is not supposed to happen - the destructor below should disconnect
