@@ -20,6 +20,7 @@ import Phaser from 'phaser';
 import { SagaIterator } from 'redux-saga';
 import { call, delay, put, race, select, take, takeEvery } from 'redux-saga/effects';
 import * as Sourceror from 'sourceror';
+import { DeviceSession } from 'src/features/remoteExecution/RemoteExecutionTypes';
 
 import { PlaygroundState } from '../../features/playground/PlaygroundTypes';
 import { OverallState, styliseChapter } from '../application/ApplicationTypes';
@@ -33,7 +34,7 @@ import {
   EVAL_TESTCASE_SUCCESS,
   HIGHLIGHT_LINE
 } from '../application/types/InterpreterTypes';
-import { Testcase, TestcaseType, TestcaseTypes, Library } from '../assessment/AssessmentTypes';
+import { Library, Testcase, TestcaseType, TestcaseTypes } from '../assessment/AssessmentTypes';
 import { INVALID_EDITOR_SESSION_ID } from '../collabEditing/CollabEditingTypes';
 import { Documentation } from '../documentation/Documentation';
 import { SideContentType } from '../sideContent/SideContentTypes';
@@ -65,7 +66,6 @@ import {
   UPDATE_EDITOR_BREAKPOINTS,
   WorkspaceLocation
 } from '../workspace/WorkspaceTypes';
-import { DeviceSession } from 'src/features/remoteExecution/RemoteExecutionTypes';
 
 let breakpoints: string[] = [];
 export default function* WorkspaceSaga(): SagaIterator {

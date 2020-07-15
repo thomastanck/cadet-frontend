@@ -1,12 +1,12 @@
-import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
 import { Button, MenuItem, NonIdealState, Spinner } from '@blueprintjs/core';
-import { Select, ItemRenderer } from '@blueprintjs/select';
+import { ItemRenderer, Select } from '@blueprintjs/select';
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
-import { WorkspaceLocation } from '../workspace/WorkspaceTypes';
-import { OverallState } from '../application/ApplicationTypes';
 import { Device } from '../../features/remoteExecution/RemoteExecutionTypes';
+import { OverallState } from '../application/ApplicationTypes';
 import { actions } from '../utils/ActionsHelper';
+import { WorkspaceLocation } from '../workspace/WorkspaceTypes';
 
 export interface SideContentRemoteExecutionProps {
   workspace: WorkspaceLocation;
@@ -27,7 +27,7 @@ const renderDevice: ItemRenderer<Device | undefined> = (device, { handleClick, m
       active={modifiers.active}
       key={device.id}
       onClick={handleClick}
-      text={device.name}
+      text={device.title}
       label={device.type}
     />
   );
@@ -101,7 +101,7 @@ const SideContentRemoteExecution: React.FC<SideContentRemoteExecutionProps> = pr
       >
         <Button
           disabled={!isLoggedIn || isConnecting || isRunning}
-          text={currentSession === undefined ? LOCAL_DEVICE_TITLE : currentSession.device.name}
+          text={currentSession === undefined ? LOCAL_DEVICE_TITLE : currentSession.device.title}
           rightIcon="caret-down"
         />
       </DeviceSelect>

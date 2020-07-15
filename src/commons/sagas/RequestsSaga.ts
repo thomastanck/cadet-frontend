@@ -15,6 +15,7 @@ import {
 } from '../../commons/assessment/AssessmentTypes';
 import { GradingSummary } from '../../features/dashboard/DashboardTypes';
 import { Grading, GradingOverview, GradingQuestion } from '../../features/grading/GradingTypes';
+import { Device, WebSocketEndpointInformation } from '../../features/remoteExecution/RemoteExecutionTypes';
 import { PlaybackData, SourcecastData } from '../../features/sourceRecorder/SourceRecorderTypes';
 import { store } from '../../pages/createStore';
 import { Notification } from '../notificationBadge/NotificationBadgeTypes';
@@ -625,6 +626,29 @@ export async function changeChapter(chapterno: number, variant: string, tokens: 
     shouldRefresh: true
   });
   return resp;
+}
+
+export async function fetchDevices(tokens: Tokens): Promise<Device | null> {
+  const resp = await request('devices', 'GET', {
+    accessToken: tokens.accessToken,
+    refreshToken: tokens.refreshToken,
+    shouldRefresh: true
+  });
+
+  return resp && resp.ok ? resp.json() : null;
+}
+
+export async function getDeviceWSEndpoint(
+  device: Device,
+  tokens: Tokens
+): Promise<WebSocketEndpointInformation | null> {
+  const resp = await request(`devices/${device.id}/ws_endpoint`, 'GET', {
+    accessToken: tokens.accessToken,
+    refreshToken: tokens.refreshToken,
+    shouldRefresh: true
+  });
+
+  return resp && resp.ok ? resp.json() : null;
 }
 
 /**

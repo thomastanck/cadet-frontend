@@ -1,34 +1,29 @@
-import { SagaIterator } from 'redux-saga';
-import { takeLatest, put, takeEvery, select, call } from 'redux-saga/effects';
+import { assemble, compile, Context } from 'js-slang';
 import { connect as mqttConnect } from 'mqtt';
-import { Context, assemble, compile } from 'js-slang';
-
+import { SagaIterator } from 'redux-saga';
+import { call, put, select, takeEvery, takeLatest } from 'redux-saga/effects';
 import {
-  REMOTE_EXEC_FETCH_DEVICES,
   Device,
+  DeviceSession,
   REMOTE_EXEC_CONNECT,
   REMOTE_EXEC_DISCONNECT,
+  REMOTE_EXEC_FETCH_DEVICES,
   REMOTE_EXEC_RUN,
-  DeviceSession
+  WebSocketEndpointInformation
 } from 'src/features/remoteExecution/RemoteExecutionTypes';
-import { actions } from '../utils/ActionsHelper';
-import { OverallState } from '../application/ApplicationTypes';
-import { store } from '../../pages/createStore';
 
-// POC
-const MQTT_URL =
-  'wss://a2ymu7hue04vq7-ats.iot.ap-southeast-1.amazonaws.com/mqtt?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYNU6ZMFNRCSQV3M6%2F20200703%2Fap-southeast-1%2Fiotdevicegateway%2Faws4_request&X-Amz-Date=20200703T081436Z&X-Amz-SignedHeaders=host&X-Amz-Signature=3548404b25cc42676502c7c43ce011c6250656ddf2def0eb57d86963a14176c7';
+import { store } from '../../pages/createStore';
+import { OverallState } from '../application/ApplicationTypes';
+import { actions } from '../utils/ActionsHelper';
+import { fetchDevices, getDeviceWSEndpoint } from './RequestsSaga';
 
 export function* remoteExecutionSaga(): SagaIterator {
   yield takeLatest(REMOTE_EXEC_FETCH_DEVICES, function* () {
-    // TODO backend
-    const devices: Device[] = [
-      {
-        id: 1,
-        name: 'Test device',
-        type: 'Test type'
-      }
-    ];
+    const tokens = yield select((state: OverallState) => ({
+      accessToken: state.session.accessToken,
+      refreshToken: state.session.refreshToken
+    }));
+    const devices: Device[] = yield call(fetchDevices, tokens);
 
     yield put(actions.remoteExecUpdateDevices(devices));
   });
@@ -36,11 +31,26 @@ export function* remoteExecutionSaga(): SagaIterator {
   yield takeLatest(REMOTE_EXEC_CONNECT, function* (
     action: ReturnType<typeof actions.remoteExecConnect>
   ) {
-    const client = mqttConnect(MQTT_URL);
+    const tokens = yield select((state: OverallState) => ({
+      accessToken: state.session.accessToken,
+      refreshToken: state.session.refreshToken
+    }));
+    const endpoint: WebSocketEndpointInformation | null = yield call(
+      getDeviceWSEndpoint,
+      action.payload.device,
+      tokens
+    );
+    if (!endpoint) {
+      // TODO handle error
+      return;
+    }
+    const client = mqttConnect(endpoint.endpoint, {
+      clientId: `${endpoint.clientNamePrefix}${generateClientNonce()}`
+    });
     yield put(
       actions.remoteExecUpdateSession({
         ...action.payload,
-        connection: { status: 'CONNECTING', client }
+        connection: { status: 'CONNECTING', client, endpoint }
       })
     );
     try {
@@ -57,11 +67,11 @@ export function* remoteExecutionSaga(): SagaIterator {
         const v = JSON.parse(payload.toString('utf8'));
         store.dispatch(actions.evalInterpreterSuccess(v, action.payload.workspace));
       });
-      client.subscribe('receiver-test-test/status');
+      client.subscribe(`${endpoint.thingName}/status`);
       yield put(
         actions.remoteExecUpdateSession({
           ...action.payload,
-          connection: { status: 'CONNECTED', client }
+          connection: { status: 'CONNECTED', client, endpoint }
         })
       );
     } catch (err) {
@@ -101,7 +111,7 @@ export function* remoteExecutionSaga(): SagaIterator {
     }
     const assembled = assemble(compiled);
 
-    client.publish('receiver-test-test/act', Buffer.from(assembled));
+    client.publish(`${session.connection.endpoint.thingName}/act`, Buffer.from(assembled));
 
     // TODO
     // yield put(actions.handleConsoleLog(`Evaluating ${program}`, session.workspace));
@@ -112,5 +122,13 @@ export function* remoteExecutionSaga(): SagaIterator {
     // }
   });
 }
+
+const ALPHANUMERIC = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+const generateClientNonce = () =>
+  new Array(16)
+    .fill(undefined)
+    .map(_ => ALPHANUMERIC[Math.floor(Math.random() * ALPHANUMERIC.length)])
+    .join('');
 
 export default remoteExecutionSaga;

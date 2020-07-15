@@ -550,7 +550,8 @@ const remoteExecutionTab: SideContentTab = {
   label: 'Remote Execution',
   iconName: IconNames.SATELLITE,
   body: <SideContentRemoteExecution workspace="playground" />,
-  id: SideContentType.remoteExecution
+  id: SideContentType.remoteExecution,
+  toSpawn: () => true
 };
 
 export default Playground;

@@ -14,13 +14,20 @@ export const REMOTE_EXEC_REPL_INPUT = 'REMOTE_EXEC_REPL_INPUT';
 
 export interface Device {
   id: number;
-  name: string;
+  title: string;
+  secret: string;
   type: string;
 }
 
+export interface WebSocketEndpointInformation {
+  endpoint: string;
+  clientNamePrefix: string;
+  thingName: string;
+}
+
 export type DeviceConnection =
-  | { status: 'CONNECTING'; client: MqttClient }
-  | { status: 'CONNECTED'; client: MqttClient }
+  | { status: 'CONNECTING'; client: MqttClient; endpoint: WebSocketEndpointInformation }
+  | { status: 'CONNECTED'; client: MqttClient; endpoint: WebSocketEndpointInformation }
   | { status: 'FAILED'; error?: string; client?: MqttClient };
 
 export interface DeviceSession {

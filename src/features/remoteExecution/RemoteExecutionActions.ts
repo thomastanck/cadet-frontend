@@ -1,17 +1,17 @@
 import { action } from 'typesafe-actions';
 
+import { WorkspaceLocation } from '../../commons/workspace/WorkspaceTypes';
 import {
-  REMOTE_EXEC_FETCH_DEVICES,
-  REMOTE_EXEC_UPDATE_DEVICES,
+  Device,
+  DeviceSession,
   REMOTE_EXEC_CONNECT,
   REMOTE_EXEC_DISCONNECT,
-  REMOTE_EXEC_UPDATE_SESSION,
-  REMOTE_EXEC_RUN,
+  REMOTE_EXEC_FETCH_DEVICES,
   REMOTE_EXEC_REPL_INPUT,
-  Device,
-  DeviceSession
+  REMOTE_EXEC_RUN,
+  REMOTE_EXEC_UPDATE_DEVICES,
+  REMOTE_EXEC_UPDATE_SESSION
 } from './RemoteExecutionTypes';
-import { WorkspaceLocation } from '../../commons/workspace/WorkspaceTypes';
 
 export const remoteExecFetchDevices = () => action(REMOTE_EXEC_FETCH_DEVICES);
 
