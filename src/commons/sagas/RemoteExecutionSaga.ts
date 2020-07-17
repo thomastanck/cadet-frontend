@@ -2,6 +2,7 @@ import { assemble, compile, Context } from 'js-slang';
 import { connect as mqttConnect } from 'mqtt';
 import { SagaIterator } from 'redux-saga';
 import { call, put, select, takeEvery, takeLatest } from 'redux-saga/effects';
+
 import {
   Device,
   DeviceSession,
@@ -10,8 +11,7 @@ import {
   REMOTE_EXEC_FETCH_DEVICES,
   REMOTE_EXEC_RUN,
   WebSocketEndpointInformation
-} from 'src/features/remoteExecution/RemoteExecutionTypes';
-
+} from '../../features/remoteExecution/RemoteExecutionTypes';
 import { store } from '../../pages/createStore';
 import { OverallState } from '../application/ApplicationTypes';
 import { actions } from '../utils/ActionsHelper';
@@ -64,10 +64,40 @@ export function* remoteExecutionSaga(): SagaIterator {
         client.once('error', reject);
       });
       client.on('message', (topic, payload) => {
-        const v = JSON.parse(payload.toString('utf8'));
-        store.dispatch(actions.evalInterpreterSuccess(v, action.payload.workspace));
+        const view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
+        const type = view.getUint16(0, true);
+        console.log(payload);
+        console.log(view);
+        console.log(type);
+        let value = undefined;
+        switch (type) {
+          case 1:
+            value = undefined;
+            break;
+          case 2:
+            value = null;
+            break;
+          case 3:
+            value = !!view.getInt8(2);
+            break;
+          case 4:
+            value = view.getInt32(2, true);
+            break;
+          case 5:
+            value = view.getFloat32(2, true);
+            break;
+          case 6:
+            const stringLength = view.getUint32(2, true);
+            value = payload.slice(6, 6 + stringLength).toString('utf8');
+            break;
+        }
+        store.dispatch(
+          topic.endsWith('display')
+            ? actions.handleConsoleLog(value as any, action.payload.workspace)
+            : actions.evalInterpreterSuccess(value, action.payload.workspace)
+        );
       });
-      client.subscribe(`${endpoint.thingName}/status`);
+      client.subscribe([`${endpoint.thingName}/status`, `${endpoint.thingName}/display`]);
       yield put(
         actions.remoteExecUpdateSession({
           ...action.payload,
@@ -107,7 +137,8 @@ export function* remoteExecutionSaga(): SagaIterator {
     );
     const compiled: ReturnType<typeof compile> = yield call(compile, program, context);
     if (!compiled) {
-      yield put(actions.evalInterpreterError([], session.workspace));
+      yield put(actions.evalInterpreterError(context.errors, session.workspace));
+      return;
     }
     const assembled = assemble(compiled);
 
