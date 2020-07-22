@@ -19,13 +19,31 @@ import { fetchDevices, getDeviceWSEndpoint } from './RequestsSaga';
 
 export function* remoteExecutionSaga(): SagaIterator {
   yield takeLatest(REMOTE_EXEC_FETCH_DEVICES, function* () {
-    const tokens = yield select((state: OverallState) => ({
-      accessToken: state.session.accessToken,
-      refreshToken: state.session.refreshToken
-    }));
+    const [tokens, session]: [any, DeviceSession | undefined] = yield select(
+      (state: OverallState) => [
+        {
+          accessToken: state.session.accessToken,
+          refreshToken: state.session.refreshToken
+        },
+        state.session.remoteExecutionSession
+      ]
+    );
     const devices: Device[] = yield call(fetchDevices, tokens);
 
     yield put(actions.remoteExecUpdateDevices(devices));
+
+    if (!session) {
+      return;
+    }
+    const updatedDevice = devices.find(({ id }) => id === session.device.id);
+    if (updatedDevice) {
+      yield put(
+        actions.remoteExecUpdateSession({
+          ...session,
+          device: updatedDevice
+        })
+      );
+    }
   });
 
   yield takeLatest(REMOTE_EXEC_CONNECT, function* (

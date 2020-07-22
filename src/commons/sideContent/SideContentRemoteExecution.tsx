@@ -2,10 +2,6 @@ import {
   Button,
   Callout,
   Classes,
-  ContextMenu,
-  Dialog,
-  FormGroup,
-  HTMLSelect,
   Menu,
   MenuDivider,
   MenuItem,
@@ -16,72 +12,82 @@ import classNames from 'classnames';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { NavLink } from 'react-router-dom';
+import { Dispatch } from 'redux';
 
+import RemoteExecutionAddDeviceDialog from '../../features/remoteExecution/RemoteExecutionDeviceDialog';
+import { Device } from '../../features/remoteExecution/RemoteExecutionTypes';
 import { OverallState } from '../application/ApplicationTypes';
+import { deleteDevice } from '../sagas/RequestsSaga';
 import { actions } from '../utils/ActionsHelper';
+import { showSimpleConfirmDialog } from '../utils/DialogHelper';
+import { showWarningMessage } from '../utils/NotificationsHelper';
 import { WorkspaceLocation } from '../workspace/WorkspaceTypes';
 
 export interface SideContentRemoteExecutionProps {
   workspace: WorkspaceLocation;
 }
 
-interface AddDeviceDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
+interface DeviceMenuItemButtonsProps {
+  isConnected: boolean;
+  device: Device;
+  dispatch: Dispatch;
+  onEditDevice: (device: Device) => void;
 }
 
-const AddDeviceDialog = ({ isOpen, onClose }: AddDeviceDialogProps) => {
-  return (
-    <Dialog
-      title="Add new device"
-      isOpen={isOpen}
-      className={Classes.DARK}
-      onClose={onClose}
-      canEscapeKeyClose={true}
-      canOutsideClickClose={true}
-    >
-      <div className={Classes.DIALOG_BODY}>
-        <FormGroup
-          label="Name"
-          labelFor="sa-remote-execution-name"
-          helperText="Shown to you only. You can key in a different name from other users."
-        >
-          <input
-            id="sa-remote-execution-name"
-            className={classNames(Classes.INPUT, Classes.FILL)}
-            type="text"
-          />
-        </FormGroup>
-
-        <FormGroup label="Type" labelFor="sa-remote-execution-type">
-          <HTMLSelect id="sa-remote-execution-type" className={classNames(Classes.FILL)}>
-            <option>A</option>
-            <option>B</option>
-          </HTMLSelect>
-        </FormGroup>
-
-        <FormGroup label="Secret" labelFor="sa-remote-execution-secret">
-          <input
-            id="sa-remote-execution-secret"
-            className={classNames(Classes.INPUT, Classes.FILL)}
-            type="text"
-          />
-        </FormGroup>
-      </div>
-      <div className={Classes.DIALOG_FOOTER}>
-        <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button intent="primary" onClick={onClose}>
-            Add
-          </Button>
-        </div>
-      </div>
-    </Dialog>
-  );
-};
+const DeviceMenuItemButtons = ({
+  isConnected,
+  device,
+  dispatch,
+  onEditDevice
+}: DeviceMenuItemButtonsProps) => (
+  <>
+    {isConnected && <>Connected</>}
+    <div className="edit-buttons">
+      <Button
+        icon="edit"
+        small
+        minimal
+        onClick={(e: React.MouseEvent) => {
+          e.stopPropagation();
+          onEditDevice(device);
+        }}
+      />
+      <Button
+        intent="danger"
+        icon="trash"
+        small
+        minimal
+        onClick={async (e: React.MouseEvent) => {
+          e.stopPropagation();
+          const confirm = await showSimpleConfirmDialog({
+            title: 'Really delete device?',
+            contents: `Are you sure you want to delete ${device.title} (${device.type})?`,
+            positiveLabel: 'Delete',
+            positiveIntent: 'danger',
+            negativeLabel: 'No',
+            icon: 'trash'
+          });
+          if (!confirm) {
+            return;
+          }
+          try {
+            await deleteDevice(device);
+          } catch (e) {
+            showWarningMessage(e.message || 'Unknown error occurred.');
+            return;
+          }
+          if (isConnected) {
+            dispatch(actions.remoteExecDisconnect());
+          }
+          dispatch(actions.remoteExecFetchDevices());
+        }}
+      />
+    </div>
+  </>
+);
 
 const SideContentRemoteExecution: React.FC<SideContentRemoteExecutionProps> = props => {
-  const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
+  const [dialogState, setDialogState] = React.useState<Device | true | undefined>(undefined);
 
   const [, isLoggedIn, devices, currentSession] = useSelector((store: OverallState) => [
     store.workspaces[props.workspace].isRunning,
@@ -156,7 +162,6 @@ const SideContentRemoteExecution: React.FC<SideContentRemoteExecutionProps> = pr
             icon={!currentDevice ? 'tick' : undefined}
             intent={!currentDevice ? 'success' : undefined}
           />
-          <MenuDivider title="Devices; right click to edit" />
           {devices &&
             devices.map(device => {
               const thisConnected = currentDevice?.id === device.id;
@@ -164,34 +169,29 @@ const SideContentRemoteExecution: React.FC<SideContentRemoteExecutionProps> = pr
                 <MenuItem
                   key={device.id}
                   onClick={() => dispatch(actions.remoteExecConnect(props.workspace, device))}
-                  onContextMenu={e => {
-                    e.preventDefault();
-                    ContextMenu.show(
-                      <Menu>
-                        <MenuItem icon="edit" text="Rename" />
-                        <MenuItem icon="delete" text="Delete" />
-                      </Menu>,
-                      { left: e.clientX, top: e.clientY },
-                      undefined,
-                      true
-                    );
-                  }}
                   text={`${device.title} (${device.type})`}
                   icon={thisConnected ? 'tick' : undefined}
-                  label={thisConnected ? 'Connected' : undefined}
+                  labelElement={
+                    <DeviceMenuItemButtons
+                      onEditDevice={setDialogState}
+                      isConnected={thisConnected}
+                      device={device}
+                      dispatch={dispatch}
+                    />
+                  }
                   intent={thisConnected ? 'success' : undefined}
                 />
               );
             })}
           <MenuDivider />
-          <MenuItem
-            text="Add new device..."
-            icon={'add'}
-            onClick={() => setIsAddDialogOpen(true)}
-          />
+          <MenuItem text="Add new device..." icon="add" onClick={() => setDialogState(true)} />
         </Menu>
       </div>
-      <AddDeviceDialog isOpen={isAddDialogOpen} onClose={() => setIsAddDialogOpen(false)} />
+      <RemoteExecutionAddDeviceDialog
+        isOpen={!!dialogState}
+        deviceToEdit={typeof dialogState === 'object' ? dialogState : undefined}
+        onClose={() => setDialogState(undefined)}
+      />
     </div>
   );
 };
