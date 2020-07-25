@@ -1,4 +1,5 @@
 import { assemble, compile, Context } from 'js-slang';
+import { ExceptionError } from 'js-slang/dist/errors/errors';
 import { connect as mqttConnect } from 'mqtt';
 import { SagaIterator } from 'redux-saga';
 import { call, put, select, takeEvery, takeLatest } from 'redux-saga/effects';
@@ -10,12 +11,18 @@ import {
   REMOTE_EXEC_DISCONNECT,
   REMOTE_EXEC_FETCH_DEVICES,
   REMOTE_EXEC_RUN,
+  SlingDisplayMessageType,
   WebSocketEndpointInformation
 } from '../../features/remoteExecution/RemoteExecutionTypes';
 import { store } from '../../pages/createStore';
 import { OverallState } from '../application/ApplicationTypes';
 import { actions } from '../utils/ActionsHelper';
 import { fetchDevices, getDeviceWSEndpoint } from './RequestsSaga';
+
+const dummyLocation = {
+  start: { line: 0, column: 0 },
+  end: { line: 0, column: 0 }
+};
 
 export function* remoteExecutionSaga(): SagaIterator {
   yield takeLatest(REMOTE_EXEC_FETCH_DEVICES, function* () {
@@ -49,10 +56,15 @@ export function* remoteExecutionSaga(): SagaIterator {
   yield takeLatest(REMOTE_EXEC_CONNECT, function* (
     action: ReturnType<typeof actions.remoteExecConnect>
   ) {
-    const tokens = yield select((state: OverallState) => ({
-      accessToken: state.session.accessToken,
-      refreshToken: state.session.refreshToken
-    }));
+    const [tokens, session]: [any, DeviceSession | undefined] = yield select(
+      (state: OverallState) => [
+        {
+          accessToken: state.session.accessToken,
+          refreshToken: state.session.refreshToken
+        },
+        state.session.remoteExecutionSession
+      ]
+    );
     const endpoint: WebSocketEndpointInformation | null = yield call(
       getDeviceWSEndpoint,
       action.payload.device,
@@ -61,6 +73,11 @@ export function* remoteExecutionSaga(): SagaIterator {
     if (!endpoint) {
       // TODO handle error
       return;
+    }
+
+    const oldClient = session?.connection.client;
+    if (oldClient) {
+      oldClient.removeAllListeners().end();
     }
     const client = mqttConnect(endpoint.endpoint, {
       clientId: `${endpoint.clientNamePrefix}${generateClientNonce()}`
@@ -82,13 +99,14 @@ export function* remoteExecutionSaga(): SagaIterator {
         client.once('error', reject);
       });
       client.on('message', (topic, payload) => {
+        if (!topic.endsWith('display')) {
+          return;
+        }
         const view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
-        const type = view.getUint16(0, true);
-        console.log(payload);
-        console.log(view);
-        console.log(type);
+        const messageType = view.getUint16(0, true);
+        const dataType = view.getUint16(2, true);
         let value = undefined;
-        switch (type) {
+        switch (dataType) {
           case 1:
             value = undefined;
             break;
@@ -96,24 +114,35 @@ export function* remoteExecutionSaga(): SagaIterator {
             value = null;
             break;
           case 3:
-            value = !!view.getInt8(2);
+            value = !!view.getInt8(4);
             break;
           case 4:
-            value = view.getInt32(2, true);
+            value = view.getInt32(4, true);
             break;
           case 5:
-            value = view.getFloat32(2, true);
+            value = view.getFloat32(4, true);
             break;
           case 6:
-            const stringLength = view.getUint32(2, true);
-            value = payload.slice(6, 6 + stringLength).toString('utf8');
+            const stringLength = view.getUint32(4, true);
+            value = payload.slice(8, 8 + stringLength).toString('utf8');
             break;
         }
-        store.dispatch(
-          topic.endsWith('display')
-            ? actions.handleConsoleLog(value as any, action.payload.workspace)
-            : actions.evalInterpreterSuccess(value, action.payload.workspace)
-        );
+        switch (messageType) {
+          case SlingDisplayMessageType.Output:
+            store.dispatch(actions.handleConsoleLog(value as any, action.payload.workspace));
+            break;
+          case SlingDisplayMessageType.Error: {
+            const error = new ExceptionError(
+              new Error(typeof value === 'string' ? value : value?.toString()),
+              dummyLocation
+            );
+            store.dispatch(actions.evalInterpreterError([error], action.payload.workspace));
+            break;
+          }
+          case SlingDisplayMessageType.Result:
+            store.dispatch(actions.evalInterpreterSuccess(value, action.payload.workspace));
+            break;
+        }
       });
       client.subscribe([`${endpoint.thingName}/status`, `${endpoint.thingName}/display`]);
       yield put(
@@ -160,7 +189,7 @@ export function* remoteExecutionSaga(): SagaIterator {
     }
     const assembled = assemble(compiled);
 
-    client.publish(`${session.connection.endpoint.thingName}/act`, Buffer.from(assembled));
+    client.publish(`${session.connection.endpoint.thingName}/run`, Buffer.from(assembled));
 
     // TODO
     // yield put(actions.handleConsoleLog(`Evaluating ${program}`, session.workspace));

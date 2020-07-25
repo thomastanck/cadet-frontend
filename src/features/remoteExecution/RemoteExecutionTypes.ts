@@ -35,3 +35,11 @@ export interface DeviceSession {
   device: Device;
   connection: DeviceConnection;
 }
+
+export enum SlingDisplayMessageType {
+  Output = 0,
+  Error = 1,
+  Result = 2,
+  Prompt = 3,
+  PromptResponse = 4
+}
