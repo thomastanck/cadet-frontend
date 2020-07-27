@@ -498,6 +498,24 @@ function clearHollusion() {
   clearTimeout(hollusionTimeout)
 }
 
+/**
+ * compares two Pictures and returns the mean squared error of the pixel intensities.
+ * @param {Picture} picture1
+ * @param {Picture} picture2
+ * @return {number} mse
+ * example: picture_mse(show(heart), show(nova));
+ */
+function picture_mse(picture1, picture2) {
+  var data1 = picture1.$canvas.getContext('2d').getImageData()
+  var data2 = picture2.$canvas.getContext('2d').getImageData()
+  var sq_err = 0
+  for (var i = 0; i < data1.length; i++) {
+    var err = data1[i] - data2[i]
+    sq_err += err * err
+  }
+  return sq_err / data1.length
+}
+
 /*-----------------------Transformation functions----------------------*/
 /**
  * scales a given Rune by separate factors in x and y direction
