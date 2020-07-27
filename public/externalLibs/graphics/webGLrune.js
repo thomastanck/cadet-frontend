@@ -506,11 +506,14 @@ function clearHollusion() {
  * example: picture_mse(show(heart), show(nova));
  */
 function picture_mse(picture1, picture2) {
-  var data1 = picture1.$canvas.getContext('2d').getImageData()
-  var data2 = picture2.$canvas.getContext('2d').getImageData()
+  var width = picture1.$canvas.width
+  var height = picture1.$canvas.height
+  var data1 = picture1.$canvas.getContext('2d').getImageData(0, 0, width, height).data
+  var data2 = picture2.$canvas.getContext('2d').getImageData(0, 0, width, height).data
+  console.log(data1)
   var sq_err = 0
   for (var i = 0; i < data1.length; i++) {
-    var err = data1[i] - data2[i]
+    var err = (data1[i] - data2[i]) / 255
     sq_err += err * err
   }
   return sq_err / data1.length
